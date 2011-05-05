@@ -10,7 +10,7 @@
 #	  OPTIONS:  ---
 # REQUIREMENTS:	---
 #	  BUGS:  ---
-#	  NOTES:  ---
+#	  NOTES:  check new opt
 #	  AUTHOR:  Aleksander Mischenko (mealstrom), aleksander.mischenko@gmail.com
 #	  COMPANY:  Liberty Lan
 #	  VERSION:  1.0
