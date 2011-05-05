@@ -1,20 +1,20 @@
 #!/usr/bin/perl -w
 #===============================================================================
 #
-#	      FILE:  eximlog.pl
+#	  FILE:  eximlog.pl
 #
-#	     USAGE:  ./eximlog.pl  
+#	  USAGE:  ./eximlog.pl  
 #
 #	DESCRIPTION:  Exim log parser test
 #
-#	   OPTIONS:  ---
+#	  OPTIONS:  ---
 # REQUIREMENTS:	---
-#	      BUGS:  ---
-#	     NOTES:  ---
-#	    AUTHOR:  Aleksander Mischenko (mealstrom), aleksander.mischenko@gmail.com
-#	   COMPANY:  Liberty Lan
-#	   VERSION:  1.0
-#	   CREATED:  04/21/2011 01:50:03 PM
+#	  BUGS:  ---
+#	  NOTES:  ---
+#	  AUTHOR:  Aleksander Mischenko (mealstrom), aleksander.mischenko@gmail.com
+#	  COMPANY:  Liberty Lan
+#	  VERSION:  1.0
+#	  CREATED:  04/21/2011 01:50:03 PM
 #	  REVISION:  ---
 #===============================================================================
 
@@ -57,7 +57,7 @@ sub logparse {
 	messageid => 'id=(.+?)\@',
 	return_path => 'P=\<(.+?)\>',
 	senders_address => 'F=\<(.+?)\>',
-	host => 'H=(.+?)\s\[(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\]:(\d{1,5})',#$1=hostname    ; $2=hostip; $3=hostport
+	host => 'H=(.+?)\s\[(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\]:(\d{1,5})',#$1=hostname; $2=hostip; $3=hostport
 	subject => 'T="(.+?)"\W',
 	envelope_from => '\<\=\W(.+?)\s',
 	envelope_to => '\=\> (w]{1,64}@[\w]{1,64}\.[\w]{2,6})',
@@ -72,16 +72,25 @@ sub logparse {
 	cwdargs => 'cwd=(.+?)\W\d\Wargs:\W(.*)',
 	};
 	my ($line) = @_;
-	print "\n!!!>>>:$line\n";
-	if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}$exim_re->{type}/){$exim->{timestamp}=$1;$exim->{mailid}=$2;$exim->{type}=$3}
+#print line
+	print "\n$line\n";
+	if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}$exim_re->{type}/){
+		$exim->{timestamp}=$1;
+		$exim->{mailid}=$2;
+		$exim->{type}=$3
+	}
 	switch ($exim->{type}) {
-		case '<=' {	#arrival	
-			if($line =~ /$exim_re->{host}/){$exim->{host}->{name}=$1;$exim->{host}->{ip}=$2;$exim->{host}->{port}=$3;}
+		case '<=' {#arrival	
+			if($line =~ /$exim_re->{host}/){
+				$exim->{host}->{name}=$1;
+				$exim->{host}->{ip}=$2;
+				$exim->{host}->{port}=$3;
+			}
 			if($line =~ /$exim_re->{subject}/){$exim->{subject}=$1}
 			if($line =~ /$exim_re->{messageid}/){$exim->{messageid}=$1}
-			if($line =~ /$exim_re->{envelope_from}/){$exim->{envelope_from}=$1}		
-			if($line =~ /$exim_re->{message_from}/){$exim->{message_from}=$1}		
-			if($line =~ /$exim_re->{message_for}/){$exim->{message_for}=$1}		
+			if($line =~ /$exim_re->{envelope_from}/){$exim->{envelope_from}=$1}
+			if($line =~ /$exim_re->{message_from}/){$exim->{message_from}=$1}
+			if($line =~ /$exim_re->{message_for}/){$exim->{message_for}=$1}
 			if($line =~ /$exim_re->{protocol}/){
 				$exim->{protocol}=$1;
 				if($exim->{protocol} =~ /local/){
@@ -92,10 +101,13 @@ sub logparse {
 				if($line =~ /$exim_re->{localuser}/x){$exim->{localuser}=$1}
 			}
 			if($line =~ /$exim_re->{size}/){$exim->{size}=$1}
-	}	
-		
-		case '=>' {	# normal message delivery
-			if($line =~ /$exim_re->{host}/){$exim->{host}->{name}=$1;$exim->{host}->{ip}=$2;$exim->{host}->{port}=$3}
+		}
+		case '=>' {# normal message delivery
+			if($line =~ /$exim_re->{host}/){
+				$exim->{host}->{name}=$1;
+				$exim->{host}->{ip}=$2;
+				$exim->{host}->{port}=$3
+			}
 			if($line =~ /$exim_re->{senders_address}/){$exim->{senders_address}=$1}
 			if($line =~ /$exim_re->{return_path}/){$exim->{return_path}=$1}
 			if($line =~ /$exim_re->{router}/){$exim->{router}=$1}
@@ -107,13 +119,13 @@ sub logparse {
 					$exim->{host}->{ip}="127.0.0.1";
 					$exim->{host}->{port}="0";
 					$exim->{host}->{name}="localhost";
-				}		
+				}
 			}
 			elsif ($line =~ /$exim_re->{envelope_to}/){$exim->{envelope_to}=$1}
 			if($line =~ /$exim_re->{size}/){$exim->{size}=$1}
 		}
-		case '**' {	# delivery failed; address bounced
-		if($line =~ /P=\<(.+?)\>/){$exim->{return_path}=$1}
+		case '**' {# delivery failed; address bounced
+			if($line =~ /P=\<(.+?)\>/){$exim->{return_path}=$1}
 		}
 		case 'no immediate delivery'{
 			$exim->{type}='error';
@@ -127,16 +139,20 @@ sub logparse {
 #		case '->' {	print "$timestamp $type $mailid \n" } # additional address in same delivery
 #		case '*>' {	print "$timestamp $type $mailid \n" }	# delivery suppressed by -N
 #		case '<>' {	print "$timestamp $type $mailid \n" } # bounce message
-		case 'Completed' {} # 
-}	
+		case 'Completed' {
+		}  
+}
 	if($line =~ /incomplete transaction/){
-			if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}/){$exim->{timestamp}=$1;$exim->{mailid}=$2}
-			$exim->{type}='error';
-			$exim->{error}->{type}="smtp_incomplete_transaction";
-			$exim->{error}->{msg}="incomplete transaction (QUIT)";
-			if($line =~ /$exim_re->{message_for}/){$exim->{message_for}=$1}
-      if($line =~ /$exim_re->{message_from}/){$exim->{message_from}=$1}
-			if($line =~ /$exim_re->{host}/){$exim->{host}->{name}=$1;$exim->{host}->{ip}=$2;$exim->{host}->{port}=$3;}
+		if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}/){
+			$exim->{timestamp}=$1;
+			$exim->{mailid}=$2
+		}
+		$exim->{type}='error';
+		$exim->{error}->{type}="smtp_incomplete_transaction";
+		$exim->{error}->{msg}="incomplete transaction (QUIT)";
+		if($line =~ /$exim_re->{message_for}/){$exim->{message_for}=$1}
+		if($line =~ /$exim_re->{message_from}/){$exim->{message_from}=$1}
+		if($line =~ /$exim_re->{host}/){$exim->{host}->{name}=$1;$exim->{host}->{ip}=$2;$exim->{host}->{port}=$3;}
 	}
 	if($line =~ /$exim_re->{timestamp}$exim_re->{cwdargs}/){
 		$exim->{timestamp}=$1;
@@ -144,7 +160,7 @@ sub logparse {
 		$exim->{args}=$3;
 	}
 
-
+#print results
 print Dumper($exim);
 }
 
