@@ -1,0 +1,11 @@
+#PLP2SQL
+#Perl Log Parser to SQL
+#
+#This program should tail exim's mainlog file,
+#parse it and export data to sql-server.
+#something similar like exilog program
+
+local configuration:
+vim: 
+set ts=2;
+
