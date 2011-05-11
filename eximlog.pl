@@ -158,12 +158,3 @@ while (<FILE>) {
 	logparse($_);
 }
 
-my $dbh = DBI->connect('DBI:mysql:test', 'perluser', 'LWFcPtdG3s4uuCMU'
-	           ) || die "Could not connect to database: $DBI::errstr";
-# (insert query examples here...)
-$dbh->do('DROP TABLE exmpl_tbl');
-$dbh->do('CREATE TABLE exmpl_tbl (id INT, val VARCHAR(100))');
-$dbh->do('INSERT INTO exmpl_tbl VALUES(1, ?)', undef, 'Hello');
-$dbh->do('INSERT INTO exmpl_tbl VALUES(2, ?)', undef, 'World');
-
-$dbh->disconnect();
