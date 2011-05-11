@@ -1,31 +1,15 @@
 #!/usr/bin/perl -w
 #===============================================================================
-#
-#	  FILE:  eximlog.pl
-#
-#	  USAGE:  ./eximlog.pl  
-#
-#	DESCRIPTION:  Exim log parser test
-#
-#	  OPTIONS:  ---
-# REQUIREMENTS:	---
-#	  BUGS:  ---
-#	  NOTES:  check new opt
-#	  AUTHOR:  Aleksander Mischenko (mealstrom), aleksander.mischenko@gmail.com
-#	  COMPANY:  Liberty Lan
-#	  VERSION:  1.0
-#	  CREATED:  04/21/2011 01:50:03 PM
-#	  REVISION:  ---
-#===============================================================================
-
 use strict;
 use warnings;
 use Data::Dumper;
 use File::Tail;
 use Switch;
+use DBI;
+use strict;
+#===============================================================================
 print "#===============================================================================";
-#
-my $filename='/home/mealstrom/scripts/test/data.log';
+my $filename='./data.log';
 open( FILE, "< $filename" ) or die "Can't open $filename : $!";
 sub logparse {
 	my $exim={
@@ -49,6 +33,7 @@ sub logparse {
 	cmd => '', #$1=cmd  $2=envto
 	cwd => '',
 	args => '',
+	table => '',
 	};
 	my $exim_re={
 	type => '((\<\=)|(\=\>)|(\*\*)|(\=\=)|(\-\>)|(\*\>)|(\<\>)|(Completed)|(no immediate delivery))',
@@ -81,6 +66,7 @@ sub logparse {
 	}
 	switch ($exim->{type}) {
 		case '<=' {#arrival	
+			$exim->{table}='arrival';
 			if($line =~ /$exim_re->{host}/){
 				$exim->{host}->{name}=$1;
 				$exim->{host}->{ip}=$2;
@@ -103,6 +89,7 @@ sub logparse {
 			if($line =~ /$exim_re->{size}/){$exim->{size}=$1}
 		}
 		case '=>' {# normal message delivery
+			$exim->{table}='delivery';
 			if($line =~ /$exim_re->{host}/){
 				$exim->{host}->{name}=$1;
 				$exim->{host}->{ip}=$2;
@@ -128,6 +115,7 @@ sub logparse {
 			if($line =~ /P=\<(.+?)\>/){$exim->{return_path}=$1}
 		}
 		case 'no immediate delivery'{
+			$exim->{table}='error';
 			$exim->{type}='error';
 			if($line =~ /no immediate delivery:(.*)/){
 				$exim->{error}->{type}="no immediate delivery";
@@ -140,6 +128,7 @@ sub logparse {
 #		case '*>' {	print "$timestamp $type $mailid \n" }	# delivery suppressed by -N
 #		case '<>' {	print "$timestamp $type $mailid \n" } # bounce message
 		case 'Completed' {
+			$exim->{table}='delivery';
 		}  
 }
 	if($line =~ /incomplete transaction/){
@@ -147,6 +136,7 @@ sub logparse {
 			$exim->{timestamp}=$1;
 			$exim->{mailid}=$2
 		}
+		$exim->{table}='error';
 		$exim->{type}='error';
 		$exim->{error}->{type}="smtp_incomplete_transaction";
 		$exim->{error}->{msg}="incomplete transaction (QUIT)";
@@ -167,3 +157,13 @@ print Dumper($exim);
 while (<FILE>) {
 	logparse($_);
 }
+
+my $dbh = DBI->connect('DBI:mysql:test', 'perluser', 'LWFcPtdG3s4uuCMU'
+	           ) || die "Could not connect to database: $DBI::errstr";
+# (insert query examples here...)
+$dbh->do('DROP TABLE exmpl_tbl');
+$dbh->do('CREATE TABLE exmpl_tbl (id INT, val VARCHAR(100))');
+$dbh->do('INSERT INTO exmpl_tbl VALUES(1, ?)', undef, 'Hello');
+$dbh->do('INSERT INTO exmpl_tbl VALUES(2, ?)', undef, 'World');
+
+$dbh->disconnect();
