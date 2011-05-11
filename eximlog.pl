@@ -9,31 +9,32 @@ use DBI;
 use strict;
 #===============================================================================
 print "#===============================================================================";
-my $filename='./data.log';
+my $filename='./data.msg';
+#my $filename='./data.arrival';
 open( FILE, "< $filename" ) or die "Can't open $filename : $!";
 sub logparse {
 	my $exim={
-	type => '',
-	host => {name => '',ip=>'',port=>'',},
-	timestamp => '',
-	mailid => '',
-	messageid => '',
-	return_path => '',
-	senders_address => '',
-	subject => '',
-	envelope_from => '',
-	envelope_to => '',
-	message_from => '',
-	message_for => '',
-	localuser => '',
-	size => '',
-	protocol => '',
-	router => '',
-	transport => '',
-	cmd => '', #$1=cmd  $2=envto
-	cwd => '',
-	args => '',
-	table => '',
+#	type => '',
+#	host => {name => '',ip=>'',port=>'',},
+#	timestamp => '',
+#	mailid => '',
+#	messageid => '',
+#	return_path => '',
+#	senders_address => '',
+#	subject => '',
+#	envelope_from => '',
+#	envelope_to => '',
+#	message_from => '',
+#	message_for => '',
+#	localuser => '',
+#	size => '',
+#	protocol => '',
+#	router => '',
+#	transport => '',
+#	cmd => '', #$1=cmd  $2=envto
+#	cwd => '',
+#	args => '',
+#	table => '',
 	};
 	my $exim_re={
 	type => '((\<\=)|(\=\>)|(\*\*)|(\=\=)|(\-\>)|(\*\>)|(\<\>)|(Completed)|(no immediate delivery))',
@@ -58,9 +59,18 @@ sub logparse {
 	};
 	my ($line) = @_;
 #print line
-	print "\n$line\n";
+#	print "\n$line\n";
 	if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}$exim_re->{type}/){
 		$exim->{timestamp}=$1;
+my $dbh = DBI->connect('DBI:mysql:test', 'perluser', 'LWFcPtdG3s4uuCMU'
+	           ) || die "Could not connect to database: $DBI::errstr";
+# (insert query examples here...)
+$dbh->do('DROP TABLE exmpl_tbl');
+$dbh->do('CREATE TABLE exmpl_tbl (id INT, val VARCHAR(100))');
+$dbh->do('INSERT INTO exmpl_tbl VALUES(1, ?)', undef, 'Hello');
+$dbh->do('INSERT INTO exmpl_tbl VALUES(2, ?)', undef, 'World');
+
+$dbh->disconnect();
 		$exim->{mailid}=$2;
 		$exim->{type}=$3
 	}
@@ -153,7 +163,6 @@ sub logparse {
 #print results
 print Dumper($exim);
 }
-
 while (<FILE>) {
 	logparse($_);
 }
