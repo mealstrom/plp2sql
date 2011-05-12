@@ -21,12 +21,12 @@ use base 'Exporter';
 our @EXPORT = qw($config);
 our $config = {
 	'sql' => {
-		'DBI'      => 'DBI:mysql:database=test',
-		'user'     => 'perluser',
-		'pass'     => 'LWFcPtdG3s4uuCMU',
+		'DBI'      => 'DBI:mysql:database=dbname',
+		'user'     => 'user',
+		'pass'     => 'password',
 	},
 	'server' => {
-		'name'		=> 'dreamguard',
+		'name'		=> 'servername',
 	}
 };
 1;
