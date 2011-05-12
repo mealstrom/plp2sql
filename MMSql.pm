@@ -18,61 +18,72 @@
 #     REVISION:  ---
 #===============================================================================
 
+package MMSql;
 use strict;
 use warnings;
-use DBD::mysql;
-use Data::Dumper;
-package MMSql;
-#my $exim123 = {
-#		  'server' => 'dreamguard',
-#          'protocol' => 'esmtpsa',
-#          'subject' => 'SssSS :D',
-#          'table' => 'arrival',
-#          'size' => '763',
-#          'messageid' => '1303985782.4db93e7671daa',
-#          'host' => {
-#                      'ip' => '127.0.0.1',
-#                      'name' => 'localhost (spam.mealstrom.org.ua)',
-#                      'port' => '51127'
-#                    },
-#          'envelope_from' => 'spam@mail.mealstrom.org.ua',
-#          'mailid' => '1QFOGk-0005nQ-F8',
-#          'timestamp' => '2011-04-28 13:16:22',
-#          'message_from' => 'spam@mail.mealstrom.org.ua',
-#          'message_for' => 'spam547@newway.com.ua',
-#          'type' => '<=',
-#		  'localuser' => 'mealstrom'
-#        };
-my $dbh = DBI->connect('DBI:mysql:test', 'perluser', 'LWFcPtdG3s4uuCMU') || die "Could not connect to database: $DBI::errstr";
-sub insert_arrival{
-	my $exim = shift;
-	$dbh->do("INSERT INTO $exim->{table}  
-				VALUES (		'$exim->{server}',
-								'$exim->{mailid}',
-								'$exim->{timestamp}',
-								'$exim->{messageid}',
-								'$exim->{envelope_from}',
-								'$exim->{message_from}',
-								'$exim->{message_for}',
-								'$exim->{subject}',
-								'$exim->{size}',
-								'$exim->{host}->{name}',
-								'$exim->{host}->{ip}',
-								'$exim->{host}->{port}',
-								'$exim->{localuser}',
-								'$exim->{protocol}',
-								'$exim->{status}'
-						)
-					");
+use DBI;
+use MMConfig; #DB parameters and server name
+BEGIN {
+	use base 'Exporter';
+	our @ISA = qw(Exporter);
+	our @EXPORT=qw(
+							&reconnect
+							&postparse
+						);
+}
+my $dbh = DBI->connect(
+										$config->{sql}->{DBI},
+										$config->{sql}->{user},
+										$config->{sql}->{pass}
+);
+unless (defined($dbh) && $dbh) {
+	print STDERR "[exilog_sql] Can't open exilog database.\n";
+ 	exit(255);
+};
+
+
+sub reconnect {
+	my $conditional = shift || 0;
+	if ($conditional) {return 1 if ($dbh->ping); };
+  eval {$dbh->disconnect() if (defined($dbh)); };
+  $dbh = 0;
+  $dbh = DBI->connect($config->{sql}->{DBI}, $config->{sql}->{user}, $config->{sql}->{pass});
+  unless (defined($dbh) && $dbh) {
+		 print STDERR "[exilog_sql] Can't open exilog database.\n";
+  	 return 0;
+  };
+  return 1;
+};
+
+#clean db.arrival. only for testing  purposes;
+sub delete_arrival{
+	$dbh->do("delete from arrival where 1=1");
+	printf("deleted from arrival");
 }
 
-$dbh->disconnect();
+sub postparse{
+	my $mmexim = shift;
+	$mmexim->{server}=$config->{server}->{name};	
+	$dbh->do("insert into $mmexim->{table}  
+				values (
+								'$mmexim->{server}',
+								'$mmexim->{mailid}',
+								'$mmexim->{timestamp}',
+								'$mmexim->{messageid}',
+								'$mmexim->{envelope_from}',
+								'$mmexim->{message_from}',
+								'$mmexim->{message_for}',
+								'$mmexim->{subject}',
+								'$mmexim->{size}',
+								'$mmexim->{host}->{name}',
+								'$mmexim->{host}->{ip}',
+								'$mmexim->{host}->{port}',
+								'$mmexim->{localuser}',
+								'$mmexim->{protocol}',
+								'$mmexim->{status}'
+						)
+					");
+	}
+
 1;
-#my $dbh = DBI->connect('DBI:mysql:test', 'perluser', 'LWFcPtdG3s4uuCMU'
-#               ) || die "Could not connect to database: $DBI::errstr";
-#$dbh->do('DROP TABLE exmpl_tbl');
-#$dbh->do('CREATE TABLE exmpl_tbl (id INT, val VARCHAR(100))');
-#$dbh->do('INSERT INTO exmpl_tbl VALUES(1, ?)', undef, 'Hello');
-#$dbh->do('INSERT INTO exmpl_tbl VALUES(2, ?)', undef, 'World');
-#$dbh->disconnect();
 

@@ -3,74 +3,18 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use File::Tail;
 use Switch;
-use DBI;
-use strict;
+use MMStructure; #$exim and $exim_re
 #===============================================================================
-print "#===============================================================================";
-my $filename='./data.msg';
-#my $filename='./data.arrival';
+my $filename='./arrival.log';
+#my $filename='./error.msg';
 open( FILE, "< $filename" ) or die "Can't open $filename : $!";
 sub logparse {
-	my $exim={
-#	type => '',
-#	host => {name => '',ip=>'',port=>'',},
-#	timestamp => '',
-#	mailid => '',
-#	messageid => '',
-#	return_path => '',
-#	senders_address => '',
-#	subject => '',
-#	envelope_from => '',
-#	envelope_to => '',
-#	message_from => '',
-#	message_for => '',
-#	localuser => '',
-#	size => '',
-#	protocol => '',
-#	router => '',
-#	transport => '',
-#	cmd => '', #$1=cmd  $2=envto
-#	cwd => '',
-#	args => '',
-#	table => '',
-	};
-	my $exim_re={
-	type => '((\<\=)|(\=\>)|(\*\*)|(\=\=)|(\-\>)|(\*\>)|(\<\>)|(Completed)|(no immediate delivery))',
-	timestamp => '(\d{4}\-\d{2}\-\d{2}\s+\d{2}\:\d{2}\:\d{2})\W',
-	mailid => '(\w{6}-\w{6}-\w{2})\W',
-	messageid => 'id=(.+?)\@',
-	return_path => 'P=\<(.+?)\>',
-	senders_address => 'F=\<(.+?)\>',
-	host => 'H=(.+?)\s\[(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\]:(\d{1,5})',#$1=hostname; $2=hostip; $3=hostport
-	subject => 'T="(.+?)"\W',
-	envelope_from => '\<\=\W(.+?)\s',
-	envelope_to => '\=\> (w]{1,64}@[\w]{1,64}\.[\w]{2,6})',
-	message_from => 'from\W\<(.+?)\>\W',
-	message_for => 'for\W(.+?)$',
-	localuser => 'U=(.+?)\W',
-	size => 'S=(\d+)',
-	protocol => 'P=(.+?)\W',
-	router => 'R=(.+?)\W',
-	transport => 'T=(.+?)\W',
-	cmd => '\=\>\W(.+?)\s\<(.+?)\>', #$1=cmd  $2=envto
-	cwdargs => 'cwd=(.+?)\W\d\Wargs:\W(.*)',
-	};
-	my ($line) = @_;
-#print line
-#	print "\n$line\n";
+	my $line='';
+	($line) = @_;
+	#printf("###\n$line\n");
 	if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}$exim_re->{type}/){
 		$exim->{timestamp}=$1;
-my $dbh = DBI->connect('DBI:mysql:test', 'perluser', 'LWFcPtdG3s4uuCMU'
-	           ) || die "Could not connect to database: $DBI::errstr";
-# (insert query examples here...)
-$dbh->do('DROP TABLE exmpl_tbl');
-$dbh->do('CREATE TABLE exmpl_tbl (id INT, val VARCHAR(100))');
-$dbh->do('INSERT INTO exmpl_tbl VALUES(1, ?)', undef, 'Hello');
-$dbh->do('INSERT INTO exmpl_tbl VALUES(2, ?)', undef, 'World');
-
-$dbh->disconnect();
 		$exim->{mailid}=$2;
 		$exim->{type}=$3
 	}
@@ -136,7 +80,7 @@ $dbh->disconnect();
 	
 #		case '->' {	print "$timestamp $type $mailid \n" } # additional address in same delivery
 #		case '*>' {	print "$timestamp $type $mailid \n" }	# delivery suppressed by -N
-#		case '<>' {	print "$timestamp $type $mailid \n" } # bounce message
+#		case '<= <>' {	print "$timestamp $type $mailid \n" } # bounce message
 		case 'Completed' {
 			$exim->{table}='delivery';
 		}  
@@ -161,9 +105,13 @@ $dbh->disconnect();
 	}
 
 #print results
-print Dumper($exim);
+use MMSql;
+reconnect();
+postparse($exim);
+#print Dumper($exim);
 }
+#MMSql::reconnect();
+MMSql::delete_arrival();
 while (<FILE>) {
 	logparse($_);
 }
-
