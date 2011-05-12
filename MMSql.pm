@@ -28,7 +28,7 @@ BEGIN {
 	our @ISA = qw(Exporter);
 	our @EXPORT=qw(
 							&reconnect
-							&postparse
+							&updatetables
 						);
 }
 my $dbh = DBI->connect(
@@ -61,29 +61,31 @@ sub delete_arrival{
 	printf("deleted from arrival");
 }
 
-sub postparse{
+sub updatetables{
+	reconnect();
 	my $mmexim = shift;
 	$mmexim->{server}=$config->{server}->{name};	
-	$dbh->do("insert into $mmexim->{table}  
-				values (
-								'$mmexim->{server}',
-								'$mmexim->{mailid}',
-								'$mmexim->{timestamp}',
-								'$mmexim->{messageid}',
-								'$mmexim->{envelope_from}',
-								'$mmexim->{message_from}',
-								'$mmexim->{message_for}',
-								'$mmexim->{subject}',
-								'$mmexim->{size}',
-								'$mmexim->{host}->{name}',
-								'$mmexim->{host}->{ip}',
-								'$mmexim->{host}->{port}',
-								'$mmexim->{localuser}',
-								'$mmexim->{protocol}',
-								'$mmexim->{status}'
-						)
-					");
+	if ($mmexim->{table} =~ /arrival/){
+			$dbh->do("insert into $mmexim->{table}  
+						values (
+										'$mmexim->{server}',
+										'$mmexim->{mailid}',
+										'$mmexim->{timestamp}',
+										'$mmexim->{messageid}',
+										'$mmexim->{envelope_from}',
+										'$mmexim->{message_from}',
+										'$mmexim->{message_for}',
+										'$mmexim->{subject}',
+										'$mmexim->{size}',
+										'$mmexim->{host}->{name}',
+										'$mmexim->{host}->{ip}',
+										'$mmexim->{host}->{port}',
+										'$mmexim->{protocol}',
+										'$mmexim->{localuser}',
+										'$mmexim->{status}'
+								)
+							");
+			}
 	}
-
 1;
 
