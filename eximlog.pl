@@ -6,13 +6,16 @@ use Data::Dumper;
 use Switch;
 use MMStructure; #$exim and $exim_re
 #===============================================================================
-my $filename='./arrival.log';
+#my $filename='./arrival.log';
+my $filename='./delivery2.log';
 #my $filename='./error.msg';
+#my $filename='./cwd.log';
 open( FILE, "< $filename" ) or die "Can't open $filename : $!";
 sub logparse {
+	my $exim = $exim_str;
 	my $line='';
 	($line) = @_;
-	#printf("###\n$line\n");
+	printf("###\n$line\n");
 	if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}$exim_re->{type}/){
 		$exim->{timestamp}=$1;
 		$exim->{mailid}=$2;
@@ -106,9 +109,9 @@ sub logparse {
 
 #print results
 use MMSql;
-reconnect();
-postparse($exim);
-#print Dumper($exim);
+#reconnect();
+updatetables($exim);
+print Dumper($exim);
 }
 #MMSql::reconnect();
 MMSql::delete_arrival();
