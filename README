@@ -1,16 +1,15 @@
-<<<<<<< HEAD
-Project: plp2sql
-Perl log parser to sql_db converter
-=======
-#PLP2SQL
-#Perl Log Parser to SQL
+# Project: PLP2SQL
+# Perl Log Parser to SQL
 #
-#This program should tail exim's mainlog file,
-#parse it and export data to sql-server.
-#something similar like exilog program
+# This program should tail exim's mainlog file,
+# parse it and export data to sql-server.
+# something similar like exilog program
 
 local configuration:
 vim: 
 set ts=2;
 
->>>>>>> 65c94f88603b6dd9c2669ddc68274102ee4f0233
+#Changelog: 2011-05-13
+Added functionality for arrival -> delivery -> complete tables;
+Core program is working for now.
+
