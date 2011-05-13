@@ -1,13 +1,18 @@
 #!/usr/bin/perl -w
 #===============================================================================
+# Something good to know:
+# 1. dont forget  use Mail::RFC822::Address qw(valid);
+# tnx to http://stackoverflow.com/users/221213/karaszi-istvan
+#===============================================================================
 use strict;
 use warnings;
 use Data::Dumper;
 use Switch;
-use MMStructure; #$exim and $exim_re
+use MMStructure; #$exim_str and $exim_re
 #===============================================================================
 #my $filename='./arrival.log';
 my $filename='./delivery2.log';
+#my $filename='./data.msg';
 #my $filename='./error.msg';
 #my $filename='./cwd.log';
 open( FILE, "< $filename" ) or die "Can't open $filename : $!";
@@ -115,6 +120,7 @@ print Dumper($exim);
 }
 #MMSql::reconnect();
 MMSql::delete_arrival();
+printf("###NEW\n");
 while (<FILE>) {
 	logparse($_);
 }

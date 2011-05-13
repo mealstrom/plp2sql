@@ -58,7 +58,7 @@ our $exim_re={
   host => 'H=(.+?)\s\[(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\]:(\d{1,5})',#$1=hostname; $2=hostip; $3=hostport
   subject => 'T="(.+?)"\W',
   envelope_from => '\<\=\W(.+?)\s',
-  envelope_to => '\=\> (\w{1,64}@[\w]{1,64}\.[\w]{2,6})',
+  envelope_to => '.*?\s+<?(\S+?)>?\s+F=',
   message_from => 'from\W\<(.+?)\>\W',
   message_for => 'for\W(.+?)$',
   localuser => 'U=(.+?)\W',
