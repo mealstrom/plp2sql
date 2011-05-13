@@ -56,17 +56,20 @@ sub reconnect {
 };
 
 #clean db.arrival. only for testing  purposes;
-sub delete_arrival{
-	$dbh->do("delete from arrival where 1=1");
-	printf("deleted from arrival");
+sub delete_data{
+	reconnect();
+	$dbh->do("delete from arrival  where 1=1");
+	$dbh->do("delete from complete where 1=1");
+	$dbh->do("delete from delivery where 1=1");
+	return 1;
 }
 
 sub updatetables{
 	reconnect();
 	my $mmexim = shift;
 	$mmexim->{server}=$config->{server}->{name};	
-	if ($mmexim->{table} =~ /arrival/){
-			$dbh->do("insert into $mmexim->{table}  
+	if ($mmexim->{action} =~ /arrival/){
+			$dbh->do("insert into arrival
 						values (
 										'$mmexim->{server}',
 										'$mmexim->{mailid}',
@@ -85,7 +88,38 @@ sub updatetables{
 										'$mmexim->{status}'
 								)
 							");
-			}
 	}
+	if ($mmexim->{action} =~ /delivery/){
+			$dbh->do("insert into delivery
+						values (
+										'$mmexim->{server}',
+										'$mmexim->{mailid}',
+										'$mmexim->{timestamp}',
+										'$mmexim->{envelope_to}',
+										'$mmexim->{senders_address}',
+										'$mmexim->{return_path}',
+										'$mmexim->{size}',
+										'$mmexim->{host}->{name}',
+										'$mmexim->{host}->{ip}',
+										'$mmexim->{host}->{port}',
+										'$mmexim->{transport}',
+										'$mmexim->{router}'
+						)
+						");
+	}
+	if ($mmexim->{action} =~ /complete/){
+		$dbh->do("insert into complete
+					values (
+										'$mmexim->{server}',
+										'$mmexim->{mailid}',
+										'$mmexim->{timestamp}'
+					)
+		");
+		$dbh->do("update arrival
+				set status='$mmexim->{status}'
+				where mailid='$mmexim->{mailid}' and server='$mmexim->{server}'
+		")
+	}		
+}
 1;
 

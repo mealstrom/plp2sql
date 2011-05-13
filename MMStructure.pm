@@ -35,15 +35,16 @@ our $exim_str={
 	envelope_to => '',
 	message_from => '',
 	message_for => '',
+	msg_rcpt_num => '',#dont know if needed
 	localuser => '',
 	size => '',
 	protocol => '',
 	router => '',
 	transport => '',
-	cmd => '', #$1=cmd  $2=envto
+#	cmd => '', #$1=cmd  $2=envto
 	cwd => '',
 	args => '',
-	table => '',
+	action => '',
 	status => '',
 	server => '',
 };
@@ -58,7 +59,7 @@ our $exim_re={
   host => 'H=(.+?)\s\[(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\]:(\d{1,5})',#$1=hostname; $2=hostip; $3=hostport
   subject => 'T="(.+?)"\W',
   envelope_from => '\<\=\W(.+?)\s',
-  envelope_to => '\=\> (\w{1,64}@[\w]{1,64}\.[\w]{2,6})',
+  envelope_to => '.*?\s+<?(\S+?)>?\s+F=',
   message_from => 'from\W\<(.+?)\>\W',
   message_for => 'for\W(.+?)$',
   localuser => 'U=(.+?)\W',
@@ -66,7 +67,7 @@ our $exim_re={
   protocol => 'P=(.+?)\W',
   router => 'R=(.+?)\W',
   transport => 'T=(.+?)\W',
-  cmd => '\=\>\W\/(.+?)\s\<(.+?)\>', #$1=cmd  $2=envto
+ # cmd => '\=\>\W\/(.+?)\s\<(.+?)\>', #$1=cmd  $2=envto
   cwdargs => 'cwd=(.+?)\W\d\Wargs:\W(.*)',
 };
 1;
