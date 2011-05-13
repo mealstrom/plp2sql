@@ -35,15 +35,16 @@ our $exim_str={
 	envelope_to => '',
 	message_from => '',
 	message_for => '',
+	msg_rcpt_num => '',#dont know if needed
 	localuser => '',
 	size => '',
 	protocol => '',
 	router => '',
 	transport => '',
-	cmd => '', #$1=cmd  $2=envto
+#	cmd => '', #$1=cmd  $2=envto
 	cwd => '',
 	args => '',
-	table => '',
+	action => '',
 	status => '',
 	server => '',
 };
@@ -66,7 +67,7 @@ our $exim_re={
   protocol => 'P=(.+?)\W',
   router => 'R=(.+?)\W',
   transport => 'T=(.+?)\W',
-  cmd => '\=\>\W\/(.+?)\s\<(.+?)\>', #$1=cmd  $2=envto
+ # cmd => '\=\>\W\/(.+?)\s\<(.+?)\>', #$1=cmd  $2=envto
   cwdargs => 'cwd=(.+?)\W\d\Wargs:\W(.*)',
 };
 1;
