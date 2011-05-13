@@ -61,7 +61,6 @@ sub delete_data{
 	$dbh->do("delete from arrival  where 1=1");
 	$dbh->do("delete from complete where 1=1");
 	$dbh->do("delete from delivery where 1=1");
-	return 1;
 }
 
 sub updatetables{

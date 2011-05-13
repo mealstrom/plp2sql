@@ -11,17 +11,39 @@ use Data::Dumper;
 use Switch;
 use MMStructure; #$exim_str and $exim_re
 #===============================================================================
-#my $filename='./arrival.log';
-#my $filename='./complete.log';
-my $filename='./data.test';
-#my $filename='./error.msg';
-#my $filename='./cwd.log';
+my $filename='./data.log';
+#my $filename='./msg1.log';
 open( FILE, "< $filename" ) or die "Can't open $filename : $!";
 sub logparse {
-	my $exim = '';
-	$exim= $exim_str;
+		my $exim={
+				type => '',
+				host => {name => '',ip=>'',port=>'',},
+				timestamp => '',
+				mailid => '',
+				messageid => '',
+				return_path => '',
+				senders_address => '',
+				subject => '',
+				envelope_from => '',
+				envelope_to => '',
+				message_from => '',
+				message_for => '',
+				msg_rcpt_num => '',#dont know if needed
+				localuser => '',
+				size => '',
+				protocol => '',
+				router => '',
+				transport => '',
+		#   cmd => '', #$1=cmd  $2=envto
+				cwd => '',
+				args => '',
+				action => '',
+				status => '',
+				server => '',
+			};
 	my $line='';
 	($line) = @_;
+	$exim->{action}='';
 	if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}$exim_re->{type}/){
 		$exim->{timestamp}=$1;
 		$exim->{mailid}=$2;
@@ -78,7 +100,7 @@ sub logparse {
 			if($line =~ /$exim_re->{size}/){$exim->{size}=$1}
 		}
 		case '**' {# delivery failed; address bounced
-			if($line =~ /P=\<(.+?)\>/){$exim->{return_path}=$1}
+		#	if($line =~ /P=\<(.+?)\>/){$exim->{return_path}=$1}
 		}
 		case 'no immediate delivery'{
 			$exim->{action}='error';
@@ -97,24 +119,28 @@ sub logparse {
 			$exim->{action}='complete';
 			$exim->{status}='Delivered';
 		}  
-}
-	if($line =~ /incomplete transaction/){
-		if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}/){
-			$exim->{timestamp}=$1;
-			$exim->{mailid}=$2
-		}
-		$exim->{action}='error';
-		$exim->{type}='error';
-		$exim->{error}->{type}="smtp_incomplete_transaction";
-		$exim->{error}->{msg}="incomplete transaction (QUIT)";
-		if($line =~ /$exim_re->{message_for}/){$exim->{message_for}=$1}
-		if($line =~ /$exim_re->{message_from}/){$exim->{message_from}=$1}
-		if($line =~ /$exim_re->{host}/){$exim->{host}->{name}=$1;$exim->{host}->{ip}=$2;$exim->{host}->{port}=$3;}
+		case 'SMTP' {$exim->{action}=''};
 	}
-	if($line =~ /$exim_re->{timestamp}$exim_re->{cwdargs}/){
-		$exim->{timestamp}=$1;
-		$exim->{cwd}=$2;
-		$exim->{args}=$3;
+#	if($line =~ /incomplete transaction/){
+#		if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}/){
+#			$exim->{timestamp}=$1;
+#			$exim->{mailid}=$2
+#		}
+#		$exim->{action}='error';
+#		$exim->{type}='error';
+#		$exim->{error}->{type}="smtp_incomplete_transaction";
+#		$exim->{error}->{msg}="incomplete transaction (QUIT)";
+#		if($line =~ /$exim_re->{message_for}/){$exim->{message_for}=$1}
+#		if($line =~ /$exim_re->{message_from}/){$exim->{message_from}=$1}
+#		if($line =~ /$exim_re->{host}/){$exim->{host}->{name}=$1;$exim->{host}->{ip}=$2;$exim->{host}->{port}=$3;}
+#	}
+#	if($line =~ /$exim_re->{timestamp}$exim_re->{cwdargs}/){
+#		$exim->{timestamp}=$1;
+#		$exim->{cwd}=$2;
+#		$exim->{args}=$3;
+#	}
+	if($line =~ /\WDKIM:\W/){
+		$exim->{action}='dkim'
 	}
 
 #print results
@@ -131,7 +157,7 @@ updatetables($exim);
 MMSql::delete_data();
 #
 #
-printf("\n###########NEW LIFE#################");
 while (<FILE>) {
+#	printf($_);
 	logparse($_);
 }

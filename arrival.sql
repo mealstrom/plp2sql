@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS arrival (
   protocol varchar(32) DEFAULT NULL,
   localuser varchar(128) DEFAULT NULL,
   status varchar(32) DEFAULT NULL,
-  PRIMARY KEY (server,mailid),
-  KEY message_id (messageid),
-  KEY timestamp (timestamp)
+  PRIMARY KEY (server,mailid,timestamp),
+  KEY message_id (messageid)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
