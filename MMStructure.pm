@@ -17,11 +17,9 @@
 package MMStructure;
 use strict;
 use warnings;
-BEGIN {
 	use base 'Exporter';
 	our @ISA = qw(Exporter);
 	our @EXPORT = qw($exim_str $exim_re);
-}
 our $exim_str={
 	type => '',
 	host => {name => '',ip=>'',port=>'',},
@@ -50,12 +48,12 @@ our $exim_str={
 };
 
 our $exim_re={
-  type => '((<=\W\<\>)|(\=\>)|(\*\*)|(\=\=)|(\-\>)|(\*\>)|(\<\=)|(Completed)|(no immediate delivery)|(removed by))',
+  type => '((\<\= \<\>)|(\=\>)|(\*\*)|(\=\=)|(\-\>)|(\*\>)|(\<\=)|(Completed)|(no immediate delivery)|(removed by)|(SMTP))',
   timestamp => '(\d{4}\-\d{2}\-\d{2}\s+\d{2}\:\d{2}\:\d{2})\W',
   mailid => '(\w{6}-\w{6}-\w{2})\W',
   messageid => 'id=(.+?)\@',
-  return_path => 'P=\<(.+?)\>',
-  senders_address => 'F=\<(.+?)\>',
+  return_path => 'P=\<([^>]*)\>',
+  senders_address => 'F=\<([^>]*)\>',#http://stackoverflow.com/users/70105/mark-synowiec
   host => 'H=(.+?)\s\[(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})\]:(\d{1,5})',#$1=hostname; $2=hostip; $3=hostport
   subject => 'T="(.+?)"\W',
   envelope_from => '\<\=\W(.+?)\s',
