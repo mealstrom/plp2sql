@@ -12,4 +12,4 @@ set ts=2;
 #Changelog: 2011-05-13
 Added functionality for arrival -> delivery -> complete tables;
 Core program is working for now.
-
+Some fixes with regexp
