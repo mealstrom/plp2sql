@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS arrival (
   hostport int(5) DEFAULT NULL,
   protocol varchar(32) DEFAULT NULL,
   localuser varchar(128) DEFAULT NULL,
-  status varchar(32) DEFAULT NULL,
   PRIMARY KEY (server,mailid,timestamp),
   KEY message_id (messageid)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;

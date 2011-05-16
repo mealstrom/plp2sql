@@ -22,6 +22,7 @@ package MMSql;
 use strict;
 use warnings;
 use DBI;
+use Try::Tiny;
 use MMConfig; #DB parameters and server name
 BEGIN {
 	use base 'Exporter';
@@ -59,17 +60,26 @@ sub reconnect {
 sub delete_data{
 	reconnect();
 	$dbh->do("delete from arrival  where 1=1");
-	$dbh->do("delete from complete where 1=1");
+	$dbh->do("delete from messages where 1=1");
 	$dbh->do("delete from delivery where 1=1");
 }
-
+# $dbh->do($queue) or die("Can't execute $queue: $dbh->errstr\n");
 sub updatetables{
 	reconnect();
 	my $mmexim = shift;
-	$mmexim->{server}=$config->{server}->{name};	
+	$mmexim->{server}=$config->{server}->{name};
+# Future improvement: try {if ()	....}
 	if ($mmexim->{action} =~ /arrival/){
-			$dbh->do("insert into arrival
-						values (
+			my $queue="INSERT INTO messages values (
+								'$mmexim->{server}',
+								'$mmexim->{mailid}',
+								'$mmexim->{timestamp}',
+								'$mmexim->{status}',
+								'0') ON DUPLICATE KEY UPDATE timestamp='$mmexim->{timestamp}'
+								";
+			try{$dbh->do($queue) or die ("Can't execute $queue: $dbh->errstr\n")}	
+			catch{warn "\nError: $_"};
+			$queue="INSERT INTO arrival values (
 										'$mmexim->{server}',
 										'$mmexim->{mailid}',
 										'$mmexim->{timestamp}',
@@ -83,13 +93,22 @@ sub updatetables{
 										'$mmexim->{host}->{ip}',
 										'$mmexim->{host}->{port}',
 										'$mmexim->{protocol}',
-										'$mmexim->{localuser}',
-										'$mmexim->{status}'
-								)
-							");
+										'$mmexim->{localuser}'
+								) ON DUPLICATE KEY UPDATE timestamp='$mmexim->{timestamp}'";
+			try{$dbh->do($queue) or die("Can't execute $queue: $dbh->errstr\n");}
+			catch{warn "\nError: $_";};
 	}
 	if ($mmexim->{action} =~ /delivery/){
-			$dbh->do("insert into delivery
+			my $queue="INSERT INTO messages values (
+								'$mmexim->{server}',
+								'$mmexim->{mailid}',
+								'$mmexim->{timestamp}',
+								'$mmexim->{status}',
+								'0') ON DUPLICATE KEY UPDATE status='$mmexim->{status}'
+								";
+			try{$dbh->do($queue) or die ("Can't execute $queue: $dbh->errstr\n")}	
+			catch{warn "\nError: $_"};
+			$queue="INSERT INTO delivery
 						values (
 										'$mmexim->{server}',
 										'$mmexim->{mailid}',
@@ -103,21 +122,27 @@ sub updatetables{
 										'$mmexim->{host}->{port}',
 										'$mmexim->{transport}',
 										'$mmexim->{router}'
-						)
-						");
+						) ON DUPLICATE KEY UPDATE timestamp='$mmexim->{timestamp}'
+						";
+			try{$dbh->do($queue) or die("Can't execute $queue: $dbh->errstr\n")}
+			catch{warn "\nError: $_";};
+			$queue="update arrival
+							set status='$mmexim->{status}'
+							where mailid='$mmexim->{mailid}' and server='$mmexim->{server}'";
+			#try{$dbh->do($queue) or die("Can't execute $queue: $dbh->errstr\n");}
+			#catch{warn "\nError: $_";};
 	}
 	if ($mmexim->{action} =~ /complete/){
-		$dbh->do("insert into complete
+		my $queue="INSERT INTO messages
 					values (
 										'$mmexim->{server}',
 										'$mmexim->{mailid}',
-										'$mmexim->{timestamp}'
-					)
-		");
-		$dbh->do("update arrival
-				set status='$mmexim->{status}'
-				where mailid='$mmexim->{mailid}' and server='$mmexim->{server}'
-		")
+										'$mmexim->{timestamp}',
+										'',
+										'1'						
+					) ON DUPLICATE KEY UPDATE completed=1";
+		try{$dbh->do($queue) or die("Can't execute $queue: $dbh->errstr\n");}
+		catch{warn "\nError: $_";};
 	}		
 }
 1;

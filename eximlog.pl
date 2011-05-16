@@ -11,8 +11,8 @@ use Data::Dumper;
 use Switch;
 use MMStructure; #$exim_str and $exim_re
 #===============================================================================
-my $filename='./data.log';
-#my $filename='./msg1.log';
+#my $filename='./data.log';
+my $filename='./msg2.log';
 open( FILE, "< $filename" ) or die "Can't open $filename : $!";
 sub logparse {
 		my $exim={
@@ -52,6 +52,7 @@ sub logparse {
 	switch ($exim->{type}) {
 		case '<=' {#arrival	
 			$exim->{action}='arrival';
+			$exim->{status}='arrived';
 			if($line =~ /$exim_re->{host}/){
 				$exim->{host}->{name}=$1;
 				$exim->{host}->{ip}=$2;
@@ -78,6 +79,7 @@ sub logparse {
 		}
 		case '=>' {# normal message delivery
 			$exim->{action}='delivery';
+			$exim->{status}='delivered';
 			if($line =~ /$exim_re->{host}/){
 				$exim->{host}->{name}=$1;
 				$exim->{host}->{ip}=$2;
@@ -117,7 +119,7 @@ sub logparse {
 #		case '<= <>' {	print "$timestamp $type $mailid \n" } # bounce message
 		case 'Completed' {
 			$exim->{action}='complete';
-			$exim->{status}='Delivered';
+			$exim->{status}='Finished';
 		}  
 		case 'SMTP' {$exim->{action}=''};
 	}
@@ -154,10 +156,8 @@ updatetables($exim);
 ################################
 #clear tables
 ###############################
-MMSql::delete_data();
-#
-#
+#MMSql::delete_data();
 while (<FILE>) {
-#	printf($_);
+	#printf($_);
 	logparse($_);
 }

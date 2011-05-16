@@ -5,11 +5,13 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8 */;
 
-DROP TABLE IF EXISTS complete;
-CREATE TABLE IF NOT EXISTS complete (
+DROP TABLE IF EXISTS messages;
+CREATE TABLE IF NOT EXISTS messages (
   server varchar(32) NOT NULL DEFAULT '',
   mailid varchar(16) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT '',
   timestamp varchar(20) DEFAULT NULL,
+  status varchar(32) DEFAULT NULL,
+  completed tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (server,mailid),
   KEY timestamp (timestamp)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
