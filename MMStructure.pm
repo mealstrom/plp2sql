@@ -45,6 +45,7 @@ our $exim_str={
 	action => '',
 	status => '',
 	server => '',
+	error_msg => '',
 };
 
 our $exim_re={
@@ -67,5 +68,6 @@ our $exim_re={
   transport => 'T=(.+?)\W',
  # cmd => '\=\>\W\/(.+?)\s\<(.+?)\>', #$1=cmd  $2=envto
   cwdargs => 'cwd=(.+?)\W\d\Wargs:\W(.*)',
+  error_msg =>'F=.+?\:\W(.*)',
 };
 1;

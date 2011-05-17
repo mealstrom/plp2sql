@@ -62,6 +62,7 @@ sub delete_data{
 	$dbh->do("delete from arrival  where 1=1");
 	$dbh->do("delete from messages where 1=1");
 	$dbh->do("delete from delivery where 1=1");
+	$dbh->do("delete from error where 1=1");
 }
 # $dbh->do($queue) or die("Can't execute $queue: $dbh->errstr\n");
 sub updatetables{
@@ -141,6 +142,31 @@ sub updatetables{
 										'',
 										'1'						
 					) ON DUPLICATE KEY UPDATE completed=1";
+		try{$dbh->do($queue) or die("Can't execute $queue: $dbh->errstr\n");}
+		catch{warn "\nError: $_";};
+	}
+	if ($mmexim->{action} =~ /error/){
+		$mmexim->{error_msg}=$dbh->quote( $mmexim->{error_msg} );
+		my $queue="INSERT INTO messages values (
+								'$mmexim->{server}',
+								'$mmexim->{mailid}',
+								'$mmexim->{timestamp}',
+								'$mmexim->{status}',
+								'0') ON DUPLICATE KEY UPDATE status='$mmexim->{status}'
+								";
+		try{$dbh->do($queue) or die ("Can't execute $queue: $dbh->errstr\n")}	
+		catch{warn "\nError: $_"};
+		$queue="INSERT INTO error
+			 values (
+							'$mmexim->{server}',
+							'$mmexim->{mailid}',
+							'$mmexim->{timestamp}',
+							'$mmexim->{envelope_to}',
+							'$mmexim->{return_path}',
+							'$mmexim->{router}',
+							'$mmexim->{transport}',
+							$mmexim->{error_msg}
+			)  ON DUPLICATE KEY UPDATE timestamp='$mmexim->{timestamp}'";
 		try{$dbh->do($queue) or die("Can't execute $queue: $dbh->errstr\n");}
 		catch{warn "\nError: $_";};
 	}		

@@ -11,8 +11,8 @@ use Data::Dumper;
 use Switch;
 use MMStructure; #$exim_str and $exim_re
 #===============================================================================
-#my $filename='./data.log';
-my $filename='./msg2.log';
+my $filename='./data.log';
+#my $filename='./error3.log';
 open( FILE, "< $filename" ) or die "Can't open $filename : $!";
 sub logparse {
 		my $exim={
@@ -40,6 +40,7 @@ sub logparse {
 				action => '',
 				status => '',
 				server => '',
+				error_msg => '',
 			};
 	my $line='';
 	($line) = @_;
@@ -102,16 +103,25 @@ sub logparse {
 			if($line =~ /$exim_re->{size}/){$exim->{size}=$1}
 		}
 		case '**' {# delivery failed; address bounced
-		#	if($line =~ /P=\<(.+?)\>/){$exim->{return_path}=$1}
+		#** alkesander.mischenko@gmail.com F=<spam@mail.mealstrom.org.ua> P=<spam@mail.mealstrom.org.ua> R=dnslookup T=remote_smtp:
+		#** spam@hahaha.com.ua.tw F=<spam@mail.mealstrom.org.ua>: Unrouteable address
+			$exim->{action}='error';
+			$exim->{status}='bounced';
+			if($line =~ /$exim_re->{envelope_to}/){$exim->{envelope_to}=$1}
+			if($line =~ /$exim_re->{senders_address}/){$exim->{senders_address}=$1}
+			if($line =~ /$exim_re->{return_path}/){$exim->{return_path}=$1}
+			if($line =~ /$exim_re->{router}/){$exim->{router}=$1}
+			if($line =~ /$exim_re->{transport}/){$exim->{transport}=$1}
+			if($line =~ /$exim_re->{error_msg}/){$exim->{error_msg}=$1}
 		}
 		case 'no immediate delivery'{
-			$exim->{action}='error';
-			$exim->{type}='error';
-			if($line =~ /no immediate delivery:(.*)/){
-				$exim->{error}->{type}="no immediate delivery";
-				$exim->{error}->{msg}=$1;
-			}
-			if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}/){$exim->{timestamp}=$1;$exim->{mailid}=$2}
+#			$exim->{action}='error';
+#			$exim->{type}='error';
+#			if($line =~ /no immediate delivery:(.*)/){
+#				$exim->{error}->{type}="no immediate delivery";
+#				$exim->{error}->{msg}=$1;
+#			}
+#			if($line =~ /$exim_re->{timestamp}$exim_re->{mailid}/){$exim->{timestamp}=$1;$exim->{mailid}=$2}
 		}
 	
 #		case '->' {	print "$timestamp $type $mailid \n" } # additional address in same delivery
@@ -156,8 +166,8 @@ updatetables($exim);
 ################################
 #clear tables
 ###############################
-#MMSql::delete_data();
+MMSql::delete_data();
 while (<FILE>) {
-	#printf($_);
+#	printf($_);
 	logparse($_);
 }
