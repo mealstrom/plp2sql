@@ -20,6 +20,7 @@ use warnings;
 use base 'Exporter';
 our @EXPORT = qw($config);
 our $config = {
+<<<<<<< HEAD
 'sql' => {
 'DBI' => 'DBI:mysql:database=dbname',
 'user' => 'user',
@@ -28,5 +29,15 @@ our $config = {
 'server' => {
 'name' => 'servername',
 }
+=======
+	'sql' => {
+		'DBI'      => 'DBI:mysql:database=plp2sql',
+		'user'     => 'perluser',
+		'pass'     => 'LWFcPtdG3s4uuCMU',
+	},
+	'server' => {
+		'name'		=> 'dreamguard',
+	}
+>>>>>>> experimental
 };
 1;

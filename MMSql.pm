@@ -22,6 +22,7 @@ package MMSql;
 use strict;
 use warnings;
 use DBI;
+use Encode::Escape;
 use Try::Tiny;
 use MMConfig; #DB parameters and server name
 BEGIN {
@@ -48,7 +49,7 @@ sub reconnect {
 	if ($conditional) {return 1 if ($dbh->ping); };
   eval {$dbh->disconnect() if (defined($dbh)); };
   $dbh = 0;
-  $dbh = DBI->connect($config->{sql}->{DBI}, $config->{sql}->{user}, $config->{sql}->{pass});
+  $dbh = DBI->connect($config->{sql}->{DBI}, $config->{sql}->{user}, $config->{sql}->{pass}, { mysql_enable_utf8 => 1 });
   unless (defined($dbh) && $dbh) {
 		 print STDERR "[exilog_sql] Can't open exilog database.\n";
   	 return 0;
@@ -80,6 +81,9 @@ sub updatetables{
 								";
 			try{$dbh->do($queue) or die ("Can't execute $queue: $dbh->errstr\n")}	
 			catch{warn "\nError: $_"};
+			$mmexim->{subject} = decode 'unicode escape', $mmexim->{subject};
+#			$mmexim->{subject} = decode 'UTF-8', $mmexim->{subject}, Encode::FB_DEFAULT | Encode::LEAVE_SRC;
+			$mmexim->{subject}=$dbh->quote($mmexim->{subject});
 			$queue="INSERT INTO arrival values (
 										'$mmexim->{server}',
 										'$mmexim->{mailid}',
@@ -88,7 +92,7 @@ sub updatetables{
 										'$mmexim->{envelope_from}',
 										'$mmexim->{message_from}',
 										'$mmexim->{message_for}',
-										'$mmexim->{subject}',
+										$mmexim->{subject},
 										'$mmexim->{size}',
 										'$mmexim->{host}->{name}',
 										'$mmexim->{host}->{ip}',
