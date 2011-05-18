@@ -21,7 +21,7 @@ use base 'Exporter';
 our @EXPORT = qw($config);
 our $config = {
 	'sql' => {
-		'DBI'      => 'DBI:mysql:database=test',
+		'DBI'      => 'DBI:mysql:database=plp2sql',
 		'user'     => 'perluser',
 		'pass'     => 'LWFcPtdG3s4uuCMU',
 	},
