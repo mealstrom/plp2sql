@@ -10,10 +10,11 @@ use warnings;
 use Data::Dumper;
 use Switch;
 use MMStructure; #$exim_str and $exim_re
+use File::Tail;
 #===============================================================================
-my $filename='./data.log';
-#my $filename='./error3.log';
-open( FILE, "< $filename" ) or die "Can't open $filename : $!";
+printf("start");
+my $filename="/home/mealstrom/git-projects/plp2sql/gendata.log";
+my $file=File::Tail->new(name=>$filename,interval=>5, maxinterval=>15, adjustafter=>5,ignore_nonexistant=>1,reset_tail=>1,reset_after=>35,tail=>-1);
 sub logparse {
 		my $exim={
 				type => '',
@@ -167,7 +168,7 @@ updatetables($exim);
 #clear tables
 ###############################
 MMSql::delete_data();
-while (<FILE>) {
-#	printf($_);
-	logparse($_);
+while (defined(my $line1=$file->read)){
+printf("$line1");
+	logparse($line1);
 }
